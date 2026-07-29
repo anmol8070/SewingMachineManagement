@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ChangeUsernameScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.header}>
         <IconButton icon="arrow-left" size={24} iconColor="#1A365D" style={{ margin: 0 }} onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>Change Username</Text>
@@ -27,6 +28,7 @@ const ChangeUsernameScreen = ({ navigation }) => {
         </TouchableOpacity>
 
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

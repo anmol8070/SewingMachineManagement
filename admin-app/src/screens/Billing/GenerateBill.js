@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,6 +8,7 @@ const GenerateBill = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -207,6 +208,7 @@ const GenerateBill = ({ navigation }) => {
             <Text style={styles.btnSubmitText}>Generate Bill & Warranty</Text>
          </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -234,6 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: '#1A365D',
+    flexShrink: 1,
   },
   headerRight: {
     flexDirection: 'row',
