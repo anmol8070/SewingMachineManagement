@@ -1,15 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Modal } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const StoreFront = () => {
+const StoreFront = ({ navigation }) => {
+  const [isRequestModalVisible, setRequestModalVisible] = useState(false);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Navbar */}
       <View style={styles.navbar}>
         <View style={styles.logoContainer}>
-          <IconButton icon="view-dashboard" size={24} iconColor="#1A365D" style={{ margin: 0 }} />
+          <IconButton icon="view-dashboard" size={24} iconColor="#1A365D" style={{ margin: 0 }} onPress={() => navigation.navigate('AdminTabs')} />
           <Text style={styles.logoText}>ThreadMasters Pro</Text>
         </View>
         <IconButton icon="menu" size={24} iconColor="#1A365D" style={{ margin: 0 }} />
@@ -124,7 +126,7 @@ const StoreFront = () => {
            <View style={styles.serviceBox}>
               <Text style={styles.ctaTitle}>Request Service</Text>
               <Text style={styles.ctaDesc}>It's out of warranty? Drop a request now to maintain your machine.</Text>
-              <TouchableOpacity style={styles.serviceBtn}>
+              <TouchableOpacity style={styles.serviceBtn} onPress={() => setRequestModalVisible(true)}>
                  <Text style={styles.serviceBtnText}>Book Now -></Text>
               </TouchableOpacity>
            </View>
@@ -155,6 +157,89 @@ const StoreFront = () => {
         </View>
 
       </ScrollView>
+
+      {/* Service Request Modal */}
+      <Modal visible={isRequestModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setRequestModalVisible(false)}>
+         <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+               <View style={styles.logoContainer}>
+                 <IconButton icon="factory" size={24} iconColor="#1A365D" style={{ margin: 0 }} />
+                 <Text style={styles.logoText}>ThreadMasters Pro</Text>
+               </View>
+               <IconButton icon="close" size={24} iconColor="#475569" onPress={() => setRequestModalVisible(false)} />
+            </View>
+            <ScrollView contentContainerStyle={styles.modalScroll}>
+               <View style={styles.modalTitlePill}>
+                  <Text style={styles.modalTitlePillText}>Public Service Request</Text>
+               </View>
+               <Text style={styles.modalTitle}>Submit a Repair Request</Text>
+               <Text style={styles.modalDesc}>
+                  Having issues with your machinery? Provide the details below and our expert technicians will analyze the request. We prioritize industrial efficiency to minimize your downtime.
+               </Text>
+               
+               <View style={styles.conciergeBox}>
+                  <View style={styles.conciergeIconBg}>
+                     <IconButton icon="headphones" size={20} iconColor="#3B82F6" style={{margin:0}}/>
+                  </View>
+                  <View style={styles.conciergeContent}>
+                     <Text style={styles.conciergeTitle}>Concierge Service</Text>
+                     <Text style={styles.conciergeText}>Response time within 2-4 business hours.</Text>
+                  </View>
+               </View>
+               <Text style={styles.conciergeNote}>
+                  <Text style={{fontWeight: '700'}}>Note:</Text> Once submitted, a ThreadMasters Pro shop representative will contact you shortly via the mobile number provided.
+               </Text>
+
+               <View style={styles.formContainer}>
+                  <Text style={styles.inputLabel}>Full Name</Text>
+                  <TextInput style={styles.modalInput} placeholder="John Doe" placeholderTextColor="#94A3B8" />
+
+                  <Text style={styles.inputLabel}>Mobile Number</Text>
+                  <TextInput style={styles.modalInput} placeholder="+1 (555) 000-0000" placeholderTextColor="#94A3B8" keyboardType="phone-pad" />
+
+                  <Text style={styles.inputLabel}>Product Model</Text>
+                  <View style={styles.pickerContainer}>
+                     <Text style={styles.pickerText}>Select Model</Text>
+                     <IconButton icon="chevron-down" size={20} iconColor="#64748B" style={{margin:0}}/>
+                  </View>
+
+                  <Text style={styles.inputLabel}>Serial Number</Text>
+                  <TextInput style={styles.modalInput} placeholder="SN-123456789" placeholderTextColor="#94A3B8" />
+
+                  <Text style={styles.inputLabel}>Description of Complaint</Text>
+                  <TextInput 
+                     style={[styles.modalInput, styles.modalTextArea]} 
+                     placeholder="Please describe the issue in detail..." 
+                     placeholderTextColor="#94A3B8" 
+                     multiline={true} 
+                     numberOfLines={4} 
+                     textAlignVertical="top" 
+                  />
+                  <Text style={styles.inputHint}>Include any error codes or unusual sounds observed.</Text>
+               </View>
+
+               <TouchableOpacity style={styles.submitBtn}>
+                  <Text style={styles.submitBtnText}>Submit Request</Text>
+                  <IconButton icon="send-outline" size={16} iconColor="#FFFFFF" style={{margin:0, marginLeft: 8}}/>
+               </TouchableOpacity>
+
+               <View style={styles.trustFeatures}>
+                  <View style={styles.trustRow}>
+                     <IconButton icon="check-decagram-outline" size={18} iconColor="#475569" style={{margin:0}}/>
+                     <Text style={styles.trustText}>OEM Certified Technicians</Text>
+                  </View>
+                  <View style={styles.trustRow}>
+                     <IconButton icon="history" size={18} iconColor="#475569" style={{margin:0}}/>
+                     <Text style={styles.trustText}>Request Tracking Available</Text>
+                  </View>
+                  <View style={styles.trustRow}>
+                     <IconButton icon="truck-outline" size={18} iconColor="#475569" style={{margin:0}}/>
+                     <Text style={styles.trustText}>On-site Repair Support</Text>
+                  </View>
+               </View>
+            </ScrollView>
+         </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -472,6 +557,167 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#1E293B',
     paddingTop: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
+  },
+  modalScroll: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  modalTitlePill: {
+    backgroundColor: '#047857',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  modalTitlePillText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 12,
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  conciergeBox: {
+    flexDirection: 'row',
+    backgroundColor: '#E0E7FF',
+    padding: 16,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    alignItems: 'center',
+  },
+  conciergeIconBg: {
+    backgroundColor: '#DBEAFE',
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  conciergeContent: {
+    flex: 1,
+  },
+  conciergeTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 2,
+  },
+  conciergeText: {
+    fontSize: 12,
+    color: '#475569',
+  },
+  conciergeNote: {
+    fontSize: 12,
+    color: '#475569',
+    lineHeight: 18,
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderTopWidth: 0,
+    marginBottom: 24,
+  },
+  formContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 13,
+    color: '#475569',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  modalInput: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    height: 44,
+    fontSize: 14,
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 6,
+    paddingLeft: 12,
+    paddingRight: 4,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  pickerText: {
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  modalTextArea: {
+    height: 100,
+    paddingTop: 12,
+    marginBottom: 4,
+  },
+  inputHint: {
+    fontSize: 11,
+    color: '#64748B',
+    fontStyle: 'italic',
+    marginBottom: 16,
+  },
+  submitBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#0F172A',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    marginBottom: 30,
+  },
+  submitBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  trustFeatures: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  trustRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trustText: {
+    fontSize: 13,
+    color: '#475569',
+    marginLeft: 8,
   }
 });
 

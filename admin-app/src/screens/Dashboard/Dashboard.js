@@ -7,7 +7,7 @@ import { Dimensions } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
 
-const Dashboard = () => {
+const Dashboard = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -129,7 +129,7 @@ const Dashboard = () => {
           <Text style={styles.quickActionsTitle}>Quick Actions</Text>
           <Text style={styles.quickActionsDesc}>Manage inventory and billing instantly.</Text>
           
-          <TouchableOpacity style={styles.primaryButton}>
+          <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.navigate('GenerateBill')}>
             <IconButton icon="file-document-outline" size={18} iconColor="#1A365D" style={{ margin: 0, marginRight: 5 }} />
             <Text style={styles.primaryButtonText}>Generate Bill</Text>
           </TouchableOpacity>
@@ -206,7 +206,7 @@ const Dashboard = () => {
           <View style={[styles.serviceItem, { borderBottomWidth: 0 }]}>
              <View style={styles.serviceItemLeft}>
                 <View style={[styles.listIcon, { backgroundColor: '#F1F5F9' }]}>
-                   <IconButton icon="sewing-machine" size={18} iconColor="#475569" style={{ margin: 0 }} />
+                   <IconButton icon="factory" size={18} iconColor="#475569" style={{ margin: 0 }} />
                 </View>
                 <View style={styles.serviceContent}>
                    <Text style={styles.listItemTitle}>Juki-Looper</Text>

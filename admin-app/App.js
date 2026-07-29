@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider, MD3LightTheme as DefaultTheme } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AppNavigator from './src/navigation/AppNavigator';
 
 const theme = {
@@ -17,7 +18,10 @@ const theme = {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <PaperProvider theme={theme}>
+      <PaperProvider 
+        theme={theme}
+        settings={{ icon: props => <MaterialCommunityIcons {...props} /> }}
+      >
         <NavigationContainer>
           <AppNavigator />
         </NavigationContainer>
