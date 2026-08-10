@@ -1,310 +1,340 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  LuCalendar,
-  LuDownload,
   LuTrendingUp,
   LuShoppingBag,
   LuWrench,
   LuPackage,
-  LuClipboardList
+  LuTriangleAlert,
+  LuClock,
+  LuDollarSign,
+  LuUsers
 } from 'react-icons/lu';
-import {
-  MdOutlinePrecisionManufacturing,
-  MdWarningAmber,
-  MdFilterList,
-  MdPersonOutline,
-  MdSync,
-  MdArrowForward
-} from 'react-icons/md';
+import { store } from '../utils/store';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const [sales, setSales] = useState(store.getSales());
+  const [products, setProducts] = useState(store.getProducts());
+  const [services, setServices] = useState(store.getServices());
+  const [customers, setCustomers] = useState(store.getCustomers());
+  const [settings, setSettings] = useState(store.getSettings());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setSales(store.getSales());
+      setProducts(store.getProducts());
+      setServices(store.getServices());
+      setCustomers(store.getCustomers());
+      setSettings(store.getSettings());
+    };
+    window.addEventListener('sewpro_db_update', handleUpdate);
+    return () => window.removeEventListener('sewpro_db_update', handleUpdate);
+  }, []);
+
+  const cur = settings.currency || '₹';
+
+  // Calculations
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todaySalesVal = sales
+    .filter(s => s.date === todayStr)
+    .reduce((acc, curr) => acc + curr.total, 0);
+
+  const pendingPaymentsVal = customers.reduce((acc, curr) => acc + (curr.outstanding || 0), 0);
+
+  const pendingServiceJobsCount = services.filter(s => s.status !== 'Delivered' && s.status !== 'Cancelled').length;
+
+  const lowStockCount = products.filter(p => p.stock <= p.minStock).length;
+
+  // Recent 5 sales
+  const recentSales = [...sales].reverse().slice(0, 5);
+
+  // Pending service jobs
+  const pendingJobs = services.filter(s => s.status !== 'Delivered' && s.status !== 'Cancelled').slice(0, 5);
+
   return (
     <div className="w-full max-w-[1200px] mx-auto animate-in fade-in duration-500 pb-12">
-      {/* --- TOP SECTION (Same as previous) --- */}
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[28px] font-bold text-[#1e2b4d] tracking-tight">System Overview</h1>
+          <h1 className="text-[28px] font-bold text-[#1e2b4d] tracking-tight">Shop Dashboard</h1>
           <p className="text-slate-500 text-[14px] mt-1">
-            Precision Stitch OS v4.2 &bull; Active Node: Region-North
+            Real-time status of sales, inventory stock levels, and repair orders.
           </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-[#e2e8f0]/80 hover:bg-[#cbd5e1] text-[#334155] px-4 py-2.5 rounded-md text-[14px] font-semibold transition-colors">
-            <LuCalendar size={16} />
-            Last 30 Days
-          </button>
-          <button className="flex items-center gap-2 bg-[#0b1c3c] hover:bg-[#1e2b4d] text-white px-4 py-2.5 rounded-md text-[14px] font-semibold transition-colors shadow-sm">
-            <LuDownload size={16} />
-            Export Report
-          </button>
         </div>
       </div>
 
       {/* Stats Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Card 1 */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 relative overflow-hidden pb-12">
+        {/* Today's Sales */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 relative overflow-hidden pb-10">
           <div className="flex justify-between items-start mb-4">
             <div className="w-9 h-9 rounded bg-blue-100/60 flex items-center justify-center text-blue-600">
               <LuTrendingUp size={20} />
             </div>
             <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[11px] font-bold">
-              +12.4%
+              Today
             </span>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Gross Revenue</p>
-          <h3 className="text-3xl font-black text-[#1e2b4d] tracking-tight">$284,590<span className="text-xl text-slate-400">.00</span></h3>
-          <div className="absolute bottom-4 left-5 right-5 h-1 bg-slate-100 rounded-full overflow-hidden mt-4">
-            <div className="h-full bg-[#1e2b4d] w-[65%] rounded-full"></div>
-          </div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Today's Sales</p>
+          <h3 className="text-2xl font-black text-[#1e2b4d] tracking-tight">
+            {cur}{todaySalesVal.toLocaleString()}<span className="text-sm font-normal text-slate-400">.00</span>
+          </h3>
         </div>
 
-        {/* Card 2 */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 relative overflow-hidden pb-12">
+        {/* Pending Payments */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 relative overflow-hidden pb-10">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-9 h-9 rounded bg-amber-100/60 flex items-center justify-center text-amber-600">
+              <LuDollarSign size={20} />
+            </div>
+            <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[11px] font-bold">
+              Outstanding
+            </span>
+          </div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pending Payments</p>
+          <h3 className="text-2xl font-black text-[#1e2b4d] tracking-tight">
+            {cur}{pendingPaymentsVal.toLocaleString()}<span className="text-sm font-normal text-slate-400">.00</span>
+          </h3>
+        </div>
+
+        {/* Service Jobs */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 relative overflow-hidden pb-10">
           <div className="flex justify-between items-start mb-4">
             <div className="w-9 h-9 rounded bg-indigo-100/60 flex items-center justify-center text-indigo-600">
-              <LuShoppingBag size={20} />
+              <LuWrench size={20} />
             </div>
-            <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[11px] font-bold">
-              +4.1%
+            <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[11px] font-bold text-center">
+              Active
             </span>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Monthly Sales</p>
-          <h3 className="text-3xl font-black text-[#1e2b4d] tracking-tight">1,402</h3>
-          <div className="absolute bottom-4 left-5 right-5 h-1 bg-slate-100 rounded-full overflow-hidden mt-4">
-            <div className="h-full bg-slate-400 w-[45%] rounded-full"></div>
-          </div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Service Jobs</p>
+          <h3 className="text-2xl font-black text-[#1e2b4d] tracking-tight">
+            {pendingServiceJobsCount} Jobs
+          </h3>
         </div>
 
-        {/* Card 3 */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 relative overflow-hidden pb-12">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-9 h-9 rounded bg-emerald-100/60 flex items-center justify-center text-emerald-600">
-              <MdOutlinePrecisionManufacturing size={22} />
-            </div>
-            <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded text-[11px] font-bold">
-              -2.3%
-            </span>
-          </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Machine Efficiency</p>
-          <h3 className="text-3xl font-black text-[#1e2b4d] tracking-tight">94.8%</h3>
-          <div className="absolute bottom-4 left-5 right-5 h-1 bg-slate-100 rounded-full overflow-hidden mt-4">
-            <div className="h-full bg-emerald-400 w-[94.8%] rounded-full"></div>
-          </div>
-        </div>
-
-        {/* Card 4 */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 relative overflow-hidden pb-12">
+        {/* Low Stock Alerts */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 relative overflow-hidden pb-10">
           <div className="flex justify-between items-start mb-4">
             <div className="w-9 h-9 rounded bg-rose-100/60 flex items-center justify-center text-rose-600">
-              <MdWarningAmber size={20} />
+              <LuPackage size={20} />
             </div>
+            {lowStockCount > 0 && (
+              <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[11px] font-bold">
+                Reorder
+              </span>
+            )}
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Alerts</p>
-          <h3 className="text-4xl font-black text-rose-600 tracking-tight leading-none mt-1">08</h3>
-          <div className="absolute bottom-4 left-5 right-5 h-1 rounded-full overflow-hidden flex gap-1">
-            <div className="h-full bg-rose-600 w-1/3 rounded-full"></div>
-            <div className="h-full bg-rose-600 w-1/3 rounded-full"></div>
-            <div className="h-full bg-slate-100 w-1/3 rounded-full"></div>
-          </div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Low Stock Products</p>
+          <h3 className={`text-2xl font-black tracking-tight ${lowStockCount > 0 ? 'text-rose-600' : 'text-[#1e2b4d]'}`}>
+            {lowStockCount} Items
+          </h3>
         </div>
       </div>
 
       {/* Middle Section: Chart & Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-
-        {/* Chart Section */}
+        {/* Sales Overview Chart */}
         <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-slate-200/60 flex flex-col">
-          <div className="flex justify-between items-start mb-8">
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <h2 className="text-[18px] font-bold text-[#1e2b4d]">Monthly Revenue</h2>
-              <p className="text-[13px] text-slate-500">Historical throughput data across all units</p>
+              <h2 className="text-[18px] font-bold text-[#1e2b4d]">Sales Overview</h2>
+              <p className="text-[13px] text-slate-500">Weekly sales tracking and collections revenue</p>
             </div>
-            <div className="flex items-center gap-4 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#1e2b4d]"></div>
-                <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">Revenue</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-cyan-400"></div>
-                <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">Cost</span>
-              </div>
+            <div className="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 text-[11px] font-bold text-slate-600">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#0b1c3c]"></span> Sales
+              </span>
             </div>
           </div>
 
-          <div className="flex-1 flex items-end justify-between gap-2 md:gap-6 mt-4 relative h-64 border-b border-slate-200 pb-2 mb-6">
+          <div className="flex-1 flex items-end justify-between gap-4 mt-4 relative h-64 border-b border-slate-200 pb-2 mb-6">
             {[
-              { label: 'Jan', height: '40%' },
-              { label: 'Feb', height: '55%' },
-              { label: 'Mar', height: '30%' },
-              { label: 'Apr', height: '65%' },
-              { label: 'May', height: '50%' },
-              { label: 'Jun', height: '80%' },
-              { label: 'Jul', height: '95%', active: true },
-            ].map((bar, i) => (
-              <div key={i} className="flex flex-col items-center gap-3 flex-1 h-full justify-end group">
-                <div
-                  className={`w-full max-w-[48px] rounded-t-sm transition-all duration-300 ${bar.active ? 'bg-[#0b1c3c]' : 'bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'}`}
-                  style={{ height: bar.height }}
-                ></div>
-                <span className="text-[11px] font-medium text-slate-400 absolute -bottom-6">{bar.label}</span>
-              </div>
-            ))}
+              { label: 'Mon', value: 42000 },
+              { label: 'Tue', value: 28000 },
+              { label: 'Wed', value: 65000 },
+              { label: 'Thu', value: 31000 },
+              { label: 'Fri', value: 78000 },
+              { label: 'Sat', value: 92000 },
+              { label: 'Sun', value: 15000 },
+            ].map((bar, i) => {
+              const max = 100000;
+              const pct = (bar.value / max) * 100 + "%";
+              return (
+                <div key={i} className="flex flex-col items-center gap-3 flex-1 h-full justify-end group">
+                  <div
+                    className="w-full max-w-[40px] rounded-t-md bg-[#0b1c3c]/80 hover:bg-[#0b1c3c] transition-all duration-300 relative group"
+                    style={{ height: pct }}
+                  >
+                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#1e2b4d] text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow z-10">
+                      {cur}{bar.value.toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-medium text-slate-400 absolute -bottom-6">{bar.label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Alerts and Support Section */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60">
+        {/* Low Stock Alerts */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200/60 flex flex-col justify-between">
+          <div>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-[12px] font-bold text-[#1e2b4d] tracking-widest uppercase">Low Stock Alerts</h3>
-              <LuClipboardList className="text-rose-500" size={18} />
+              <LuTriangleAlert className="text-rose-500" size={18} />
             </div>
 
-            <div className="space-y-5 mb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200">
-                    <LuWrench size={18} />
+            <div className="space-y-4 mb-6 max-h-[220px] overflow-y-auto pr-1">
+              {products.filter(p => p.stock <= p.minStock).map((prod) => (
+                <div key={prod.id} className="flex items-center justify-between border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-rose-50 flex items-center justify-center text-rose-600 font-bold text-[11px]">
+                      {prod.type[0]}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-[#1e2b4d] leading-tight">{prod.name}</span>
+                      <span className="text-[11px] text-slate-400">{prod.brand} &bull; {prod.model}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-[13px] font-bold text-[#1e2b4d] leading-tight">Industrial Bobbins</span>
-                    <span className="text-[11px] text-slate-400">SKU: TM-904-B</span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[13px] font-bold text-rose-600 leading-tight">12 Units</span>
-                  <span className="text-[11px] text-slate-400">Min: 50</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200">
-                    <LuPackage size={18} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[13px] font-bold text-[#1e2b4d] leading-tight">High-Tensile<br />Thread</span>
-                    <span className="text-[11px] text-slate-400">SKU: HT-NAV-01</span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[13px] font-bold text-rose-600 leading-tight">{prod.stock} Qty</span>
+                    <span className="text-[10px] text-slate-400">Min: {prod.minStock}</span>
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[13px] font-bold text-rose-600 leading-tight">08 Spools</span>
-                  <span className="text-[11px] text-slate-400">Min: 20</span>
-                </div>
-              </div>
+              ))}
+              {products.filter(p => p.stock <= p.minStock).length === 0 && (
+                <p className="text-slate-400 text-xs text-center py-6">All items have healthy stock levels!</p>
+              )}
             </div>
-
-            <button className="w-full py-2.5 rounded-md border border-slate-300 text-[13px] font-bold text-slate-600 hover:bg-slate-50 transition-colors">
-              Manage Inventory
-            </button>
           </div>
 
-          <div className="bg-[#0b1c3c] rounded-xl p-5 shadow-md relative overflow-hidden flex-1 flex flex-col justify-between min-h-[140px]">
-            <div className="absolute -right-6 -bottom-6 text-white/5">
-              <MdWarningAmber size={120} />
-            </div>
-
-            <div className="relative z-10">
-              <h3 className="text-[18px] font-bold text-white mb-1">Support Queue</h3>
-              <p className="text-slate-300 text-[13px]">3 Urgent service requests pending.</p>
-            </div>
-
-            <button className="relative z-10 flex items-center gap-2 text-white text-[13px] font-semibold mt-4 hover:opacity-80 transition-opacity w-fit">
-              View Jobs <MdArrowForward size={16} />
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/admin/inventory/products')}
+            className="w-full py-2 rounded-lg border border-slate-200 text-[13px] font-bold text-[#1e2b4d] hover:bg-slate-50 transition-colors"
+          >
+            Manage Inventory Stock
+          </button>
         </div>
       </div>
 
-      {/* --- NEW SECTION: Recent Sales Transactions --- */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden mb-8">
-        <div className="p-6 border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-[20px] font-bold text-[#1e2b4d]">Recent Sales Transactions</h2>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="Filter by client..."
-              className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-md text-[13px] text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-300 w-full sm:w-[220px]"
-            />
-            <button className="p-2.5 bg-white border border-slate-200 rounded-md text-slate-500 hover:bg-slate-50 transition-colors">
-              <MdFilterList size={18} />
+      {/* Grid: Recent Sales, Pending Jobs, Customers Outstanding */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Sales Transactions */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
+          <div className="p-5 border-b border-slate-200/60 flex items-center justify-between">
+            <h2 className="text-[16px] font-bold text-[#1e2b4d]">Recent Sales Transactions</h2>
+            <button
+              onClick={() => navigate('/admin/sales/history')}
+              className="text-xs font-bold text-blue-600 hover:underline"
+            >
+              View All
             </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200/60 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="px-4 py-3">Invoice</th>
+                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody className="text-[13px]">
+                {recentSales.map((sale) => (
+                  <tr key={sale.invoiceNumber} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                    <td className="px-4 py-3.5 font-bold text-[#1e2b4d]">{sale.invoiceNumber}</td>
+                    <td className="px-4 py-3.5 text-slate-600">{sale.customerName}</td>
+                    <td className="px-4 py-3.5">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        sale.paymentStatus === 'Paid' ? 'bg-emerald-50 text-emerald-700' :
+                        sale.paymentStatus === 'Partially Paid' ? 'bg-amber-50 text-amber-700' :
+                        'bg-rose-50 text-rose-700'
+                      }`}>
+                        {sale.paymentStatus}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-right font-bold text-[#1e2b4d]">{cur}{sale.total.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[700px]">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200/60 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                <th className="px-6 py-4">Order ID</th>
-                <th className="px-6 py-4">Client Entity</th>
-                <th className="px-6 py-4">Item Category</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Amount</th>
-                <th className="px-6 py-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="text-[13px]">
-              <tr className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-5 font-bold text-[#1e2b4d]">#ORD-2024-0081</td>
-                <td className="px-6 py-5 text-slate-600">Precision Fabrics Ltd.</td>
-                <td className="px-6 py-5 text-slate-500">Industrial Sewing Unit<br />X-12</td>
-                <td className="px-6 py-5">
-                  <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[11px] font-bold">Delivered</span>
-                </td>
-                <td className="px-6 py-5 text-right font-bold text-[#1e2b4d]">$12,450.00</td>
-                <td className="px-6 py-5 text-right"></td>
-              </tr>
-              <tr className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-5 font-bold text-[#1e2b4d]">#ORD-2024-0082</td>
-                <td className="px-6 py-5 text-slate-600">Summit Apparel Co.</td>
-                <td className="px-6 py-5 text-slate-500">Replacement Drive<br />Belts</td>
-                <td className="px-6 py-5">
-                  <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-[11px] font-bold">In Transit</span>
-                </td>
-                <td className="px-6 py-5 text-right font-bold text-[#1e2b4d]">$2,890.00</td>
-                <td className="px-6 py-5 text-right"></td>
-              </tr>
-              <tr className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-5 font-bold text-[#1e2b4d]">#ORD-2024-0083</td>
-                <td className="px-6 py-5 text-slate-600">Global Stitch Corp</td>
-                <td className="px-6 py-5 text-slate-500">System Maintenance<br />Kit</td>
-                <td className="px-6 py-5">
-                  <span className="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-[11px] font-bold inline-block text-center leading-tight">Payment<br />Pending</span>
-                </td>
-                <td className="px-6 py-5 text-right font-bold text-[#1e2b4d]">$840.50</td>
-                <td className="px-6 py-5 text-right"></td>
-              </tr>
-              <tr className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-5 font-bold text-[#1e2b4d]">#ORD-2024-0084</td>
-                <td className="px-6 py-5 text-slate-600">Textile Solutions Inc.</td>
-                <td className="px-6 py-5 text-slate-500">Laser Alignment<br />Tooling</td>
-                <td className="px-6 py-5">
-                  <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[11px] font-bold">Delivered</span>
-                </td>
-                <td className="px-6 py-5 text-right font-bold text-[#1e2b4d]">$5,200.00</td>
-                <td className="px-6 py-5 text-right"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {/* Pending Service Jobs & Customer Udhaar */}
+        <div className="flex flex-col gap-6">
+          {/* Pending Service Jobs */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[16px] font-bold text-[#1e2b4d]">Pending Service Jobs</h2>
+              <button
+                onClick={() => navigate('/admin/service/pending')}
+                className="text-xs font-bold text-blue-600 hover:underline"
+              >
+                View Jobs Desk
+              </button>
+            </div>
+            <div className="space-y-3">
+              {pendingJobs.map((job) => (
+                <div key={job.jobId} className="flex items-center justify-between border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-bold text-[#1e2b4d]">{job.jobId}</span>
+                      <span className="text-[11px] text-slate-400">({job.customerName})</span>
+                    </div>
+                    <span className="text-[12px] text-slate-600 mt-0.5">
+                      {job.machineBrand} {job.machineModel} &bull; <span className="italic text-slate-400">"{job.complaint}"</span>
+                    </span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    job.status === 'Repairing' ? 'bg-indigo-50 text-indigo-700' :
+                    job.status === 'Checking' ? 'bg-amber-50 text-amber-700' :
+                    job.status === 'Ready' ? 'bg-emerald-50 text-emerald-700' :
+                    'bg-slate-100 text-slate-600'
+                  }`}>
+                    {job.status}
+                  </span>
+                </div>
+              ))}
+              {pendingJobs.length === 0 && (
+                <p className="text-slate-400 text-xs text-center py-6">No pending service jobs.</p>
+              )}
+            </div>
+          </div>
 
-        {/* Pagination Footer */}
-        <div className="p-4 border-t border-slate-200/60 flex items-center justify-between text-[13px] text-slate-500">
-          <span>Showing 4 of 1,240 records</span>
-          <div className="flex items-center gap-1.5">
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 transition-colors">&lt;</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded bg-[#0b1c3c] text-white font-bold transition-colors">1</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 font-bold transition-colors text-[#1e2b4d]">2</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 font-bold transition-colors text-[#1e2b4d]">3</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 transition-colors">&gt;</button>
+          {/* Customer Outstanding / Udhaar summary */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[16px] font-bold text-[#1e2b4d]">Customer Outstanding / Udhaar</h2>
+              <button
+                onClick={() => navigate('/admin/customers/outstanding')}
+                className="text-xs font-bold text-blue-600 hover:underline"
+              >
+                View Ledger
+              </button>
+            </div>
+            <div className="space-y-3">
+              {customers.filter(c => c.outstanding > 0).slice(0, 4).map((cust) => (
+                <div key={cust.id} className="flex items-center justify-between border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-bold text-[#1e2b4d]">{cust.name}</span>
+                    <span className="text-[11px] text-slate-400">{cust.mobile}</span>
+                  </div>
+                  <span className="text-[13px] font-bold text-rose-600">
+                    {cur}{cust.outstanding.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+              {customers.filter(c => c.outstanding > 0).length === 0 && (
+                <p className="text-slate-400 text-xs text-center py-6">No outstanding balances from customers!</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
-
-
     </div>
   );
 };

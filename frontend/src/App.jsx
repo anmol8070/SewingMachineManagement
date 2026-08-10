@@ -6,6 +6,10 @@ import AdminDashboard from './AdminPages/Dashboard';
 import Inventory from './AdminPages/Inventory';
 import Sales from './AdminPages/Sales';
 import Service from './AdminPages/Service';
+import Customers from './AdminPages/Customers';
+import Payments from './AdminPages/Payments';
+import Expenses from './AdminPages/Expenses';
+import Reports from './AdminPages/Reports';
 import Settings from './AdminPages/Settings';
 
 import PublicDashboard from './Publicpages/Dashboard';
@@ -13,16 +17,6 @@ import ShopeHome from './Publicpages/ShopeHome';
 import ContactUs from './Publicpages/ContactUs';
 import Warranty from './Publicpages/Warranty';
 import RequestService from './Publicpages/RequestService';
-
-// Dummy page component for demonstration
-const Page = ({ title }) => (
-  <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 h-full">
-    <h2 className="text-2xl font-bold text-[#1e2b4d] mb-4">{title}</h2>
-    <p className="text-slate-600">
-      This is the {title.toLowerCase()} page content. The routes have been successfully configured!
-    </p>
-  </div>
-);
 
 function App() {
   return (
@@ -62,10 +56,39 @@ function App() {
                     <Route path="/admin">
                       <Route index element={<Navigate to="dashboard" replace />} />
                       <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="inventory" element={<Inventory />} />
-                      <Route path="sales" element={<Sales />} />
-                      <Route path="service" element={<Service />} />
-                      <Route path="reports" element={<Page title="Reports" />} />
+                      
+                      {/* Sales routes */}
+                      <Route path="sales" element={<Navigate to="sales/new-bill" replace />} />
+                      <Route path="sales/new-bill" element={<Sales subpage="new-bill" />} />
+                      <Route path="sales/history" element={<Sales subpage="history" />} />
+                      <Route path="sales/returns" element={<Sales subpage="returns" />} />
+                      
+                      {/* Inventory routes */}
+                      <Route path="inventory" element={<Navigate to="inventory/products" replace />} />
+                      <Route path="inventory/products" element={<Inventory subpage="products" />} />
+                      <Route path="inventory/purchases" element={<Inventory subpage="purchases" />} />
+                      <Route path="inventory/suppliers" element={<Inventory subpage="suppliers" />} />
+                      <Route path="inventory/product/:id" element={<Inventory subpage="product-details" />} />
+                      <Route path="inventory/supplier/:id" element={<Inventory subpage="supplier-details" />} />
+                      
+                      {/* Service routes */}
+                      <Route path="service" element={<Navigate to="service/pending" replace />} />
+                      <Route path="service/new-job" element={<Service subpage="new-job" />} />
+                      <Route path="service/pending" element={<Service subpage="pending" />} />
+                      <Route path="service/ready" element={<Service subpage="ready" />} />
+                      <Route path="service/history" element={<Service subpage="history" />} />
+                      <Route path="service/analytics" element={<Service subpage="analytics" />} />
+                      <Route path="service/job/:id" element={<Service subpage="job-details" />} />
+                      
+                      {/* Customers routes */}
+                      <Route path="customers" element={<Navigate to="customers/list" replace />} />
+                      <Route path="customers/list" element={<Customers subpage="list" />} />
+                      <Route path="customers/outstanding" element={<Customers subpage="outstanding" />} />
+                      <Route path="customers/customer/:id" element={<Customers subpage="details" />} />
+                      
+                      <Route path="payments" element={<Payments />} />
+                      <Route path="expenses" element={<Expenses />} />
+                      <Route path="reports" element={<Reports />} />
                       <Route path="settings" element={<Settings />} />
                     </Route>
                   </Routes>
