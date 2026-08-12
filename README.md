@@ -1,1 +1,1 @@
-﻿# Sewing Machine Management 
+﻿# Sewing Machine Management System
