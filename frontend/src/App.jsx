@@ -18,6 +18,9 @@ import ContactUs from './Publicpages/ContactUs';
 import Warranty from './Publicpages/Warranty';
 import RequestService from './Publicpages/RequestService';
 
+import WarrantyCertificate from './PdfPages/WarrantyCertificate';
+import InvoiceDocument from './PdfPages/InvoiceDocument';
+
 function App() {
   return (
     <BrowserRouter>
@@ -42,15 +45,22 @@ function App() {
         <Route path="/warranty" element={<Warranty />} />
         <Route path="/request-service" element={<RequestService />} />
 
+        {/* PDF Routes */}
+        <Route path="/pdf">
+          <Route index element={<Navigate to="warranty" replace />} />
+          <Route path="warranty" element={<WarrantyCertificate />} />
+          <Route path="invoice" element={<InvoiceDocument />} />
+        </Route>
+
         {/* Admin Layout & Parent Route: /admin */}
         <Route
           path="/*"
           element={
-            <div className="flex h-screen bg-[#f8fafc] overflow-hidden font-sans">
+            <div className="flex h-screen bg-[#f8fafc] dark:bg-[#0f172a] overflow-hidden font-sans transition-colors duration-200">
               <Sidebar />
               <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 <Header />
-                <main className="flex-1 overflow-y-auto p-8 bg-slate-50">
+                <main className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-[#0b1120] transition-colors duration-200">
                   <Routes>
                     <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
                     <Route path="/admin">
